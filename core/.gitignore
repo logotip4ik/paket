@@ -1,0 +1,10 @@
+input.txt
+output.txt
+*.pkt
+
+test*
+
+release
+playground
+folder
+debug
