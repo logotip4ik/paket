@@ -16,8 +16,6 @@ PktRW::PktRW(PktRWOptions& options) {
   this->mode = options.mode;
   this->offset = options.offset;
 
-  this->middleware = options.middleware;
-
   if (this->mode == PktMode::Source) {
     this->source = std::ifstream(options.pkt, std::ios::binary | std::ios::in);
     this->target = std::ofstream(options.target, std::ios::binary | std::ios::out);
@@ -44,14 +42,14 @@ PktRW::~PktRW() {
   this->target.close();
 }
 
-void PktRW::process() {
+void PktRW::process(PktMiddleware& middleware) {
   Buf inBuffer = Buf(CHUNK_SIZE);
   Buf outBuffer = Buf(CHUNK_SIZE);
 
   this->source.read((char*)inBuffer.value, inBuffer.size);
 
   while ((inBuffer.read = this->source.gcount()) > 0) {
-    this->middleware.handle(&inBuffer, &outBuffer);
+    middleware.handle(&inBuffer, &outBuffer);
 
     #ifndef __PERF
     if (outBuffer.wrote != inBuffer.read) {
@@ -65,10 +63,10 @@ void PktRW::process() {
     this->source.read((char*)inBuffer.value, inBuffer.size);
   }
 
-  this->middleware.onFinish(&inBuffer, &outBuffer);
+  middleware.onFinish(&inBuffer, &outBuffer);
 }
 
-void PktRW::process(lluint maxBytesToRead) {
+void PktRW::process(PktMiddleware& middleware, lluint maxBytesToRead) {
   lluint totalBytesRead = 0;
 
   Buf inBuffer = Buf(CHUNK_SIZE);
@@ -81,7 +79,7 @@ void PktRW::process(lluint maxBytesToRead) {
     this->source.read((char*)inBuffer.value, inBuffer.read);
     totalBytesRead += inBuffer.read;
 
-    this->middleware.handle(&inBuffer, &outBuffer);
+    middleware.handle(&inBuffer, &outBuffer);
 
     #ifndef __PERF
     if (outBuffer.wrote != inBuffer.read) {
@@ -93,5 +91,5 @@ void PktRW::process(lluint maxBytesToRead) {
     this->target.write((char*)outBuffer.value, outBuffer.wrote);
   } while (totalBytesRead < maxBytesToRead);
 
-  this->middleware.onFinish(&inBuffer, &outBuffer);
+  middleware.onFinish(&inBuffer, &outBuffer);
 }

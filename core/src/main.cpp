@@ -6,6 +6,9 @@
 #include "files.h"
 #include "serialize.h"
 #include "rw/rw.h"
+#include "keys/keys.h"
+
+const static std::string _key = "someting";
 
 void encrypt(std::string rootPath) {
   fs::file_status pathStatus = fs::status(rootPath);
@@ -43,6 +46,11 @@ void encrypt(std::string rootPath) {
   // todo: add multithreading
   /* std::vector<std::thread> threads(serialized.size()); */
 
+  Buf key(32);
+  memcpy(key.value, _key.c_str(), _key.size());
+  Buf iv(16);
+  makeIvKeyFromKey(std::string(_key), &iv);
+
   for (size_t i = 0; i < serialized.size(); i++) {
     const SerializedLeaf& leaf = serialized[i];
 
@@ -58,11 +66,13 @@ void encrypt(std::string rootPath) {
     options.pkt = output;
     options.offset = leaf.contents;
     options.target = leaf.path;
-    options.middleware = PktMiddleware();
 
     PktRW rw(options);
 
-    rw.process();
+    /* PktDummyMiddleware middleware = PktDummyMiddleware(); */
+    PktAesMiddleware middleware = PktAesMiddleware(AesMode::Encrypt, key.value, iv.value);
+
+    rw.process(middleware);
   }
 }
 
@@ -90,6 +100,11 @@ void decrypt(std::string paket) {
 
   rebuildFolderTree(leafs);
 
+  Buf key(32);
+  memcpy(key.value, _key.c_str(), _key.size());
+  Buf iv(16);
+  makeIvKeyFromKey(std::string(_key), &iv);
+
   // todo: add multithreading
   /* std::vector<std::thread> threads(serialized.size()); */
   for (const Leaf& leaf: leafs) {
@@ -105,11 +120,13 @@ void decrypt(std::string paket) {
     options.pkt = paket;
     options.offset = leaf.contents;
     options.target = leaf.path;
-    options.middleware = PktMiddleware();
 
     PktRW rw(options);
 
-    rw.process(leaf.length);
+    /* PktDummyMiddleware middleware = PktDummyMiddleware(); */
+    PktAesMiddleware middleware = PktAesMiddleware(AesMode::Encrypt, key.value, iv.value);
+
+    rw.process(middleware, leaf.length);
   }
 }
 

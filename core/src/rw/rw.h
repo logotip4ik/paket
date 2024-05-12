@@ -18,8 +18,14 @@ struct Buf {
 
 class PktMiddleware {
 public:
-  void handle(Buf* source, Buf* target);
-  void onFinish(Buf* source, Buf* target);
+  virtual void handle(Buf* source, Buf* target) = 0;
+  virtual void onFinish(Buf* source, Buf* target) = 0;
+};
+
+class PktDummyMiddleware : public PktMiddleware {
+public:
+  void handle(Buf* source, Buf* target) override;
+  void onFinish(Buf* source, Buf* target) override;
 };
 
 class PktAesMiddleware : public PktMiddleware {
@@ -31,8 +37,8 @@ public:
   PktAesMiddleware(AesMode mode, const unsigned char* key, const unsigned char* iv);
   ~PktAesMiddleware();
 
-  void handle(Buf* source, Buf* target);
-  void onFinish(Buf* source, Buf* target);
+  void handle(Buf* source, Buf* target) override;
+  void onFinish(Buf* source, Buf* target) override;
 };
 
 struct PktRWOptions {
@@ -40,8 +46,6 @@ struct PktRWOptions {
   lluint offset;
   fs::path pkt;
   fs::path target;
-
-  PktMiddleware middleware;
 };
 
 class PktRW {
@@ -51,12 +55,10 @@ private:
   std::ifstream source;
   std::ofstream target;
 
-  PktMiddleware middleware;
-
 public:
   PktRW(PktRWOptions& options);
   ~PktRW();
 
-  void process();
-  void process(lluint maxBytesToRead);
+  void process(PktMiddleware& middleware);
+  void process(PktMiddleware& middleware, lluint maxBytesToRead);
 };

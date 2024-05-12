@@ -4,12 +4,12 @@
 
 #include "rw.h"
 
-void PktMiddleware::handle(Buf* in, Buf* out) {
+void PktDummyMiddleware::handle(Buf* in, Buf* out) {
   memcpy(out->value, in->value, out->size);
   out->wrote = in->read;
 }
 
-void PktMiddleware::onFinish(Buf* in, Buf* out) {
+void PktDummyMiddleware::onFinish(Buf* in, Buf* out) {
   // noop
 }
 
