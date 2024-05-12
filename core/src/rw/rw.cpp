@@ -45,26 +45,31 @@ PktRW::~PktRW() {
 }
 
 void PktRW::process() {
-  int bytesRead;
-
   Buf inBuffer = Buf(CHUNK_SIZE);
   Buf outBuffer = Buf(CHUNK_SIZE);
 
   this->source.read((char*)inBuffer.value, inBuffer.size);
 
-  while ((bytesRead = this->source.gcount()) > 0) {
+  while ((inBuffer.read = this->source.gcount()) > 0) {
     this->middleware.handle(&inBuffer, &outBuffer);
 
-    this->target.write((char*)outBuffer.value, bytesRead);
+    #ifndef __PERF
+    if (outBuffer.wrote != inBuffer.read) {
+      std::cerr << "Bytes wrote and bytes read MUST match!" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+    #endif
+
+    this->target.write((char*)outBuffer.value, outBuffer.wrote);
 
     this->source.read((char*)inBuffer.value, inBuffer.size);
   }
+
+  this->middleware.onFinish(&inBuffer, &outBuffer);
 }
 
 void PktRW::process(lluint maxBytesToRead) {
   lluint totalBytesRead = 0;
-
-  int bytesToRead;
 
   Buf inBuffer = Buf(CHUNK_SIZE);
   Buf outBuffer = Buf(CHUNK_SIZE);
@@ -72,27 +77,21 @@ void PktRW::process(lluint maxBytesToRead) {
   lluint chunkSize = inBuffer.size;
 
   do {
-    bytesToRead = std::min(chunkSize, maxBytesToRead - totalBytesRead);
-    this->source.read((char*)inBuffer.value, bytesToRead);
-    totalBytesRead += bytesToRead;
+    inBuffer.read = std::min(chunkSize, maxBytesToRead - totalBytesRead);
+    this->source.read((char*)inBuffer.value, inBuffer.read);
+    totalBytesRead += inBuffer.read;
 
     this->middleware.handle(&inBuffer, &outBuffer);
 
-    this->target.write((char*)outBuffer.value, bytesToRead);
+    #ifndef __PERF
+    if (outBuffer.wrote != inBuffer.read) {
+      std::cerr << "Bytes wrote and bytes read MUST match!" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+    #endif
+
+    this->target.write((char*)outBuffer.value, outBuffer.wrote);
   } while (totalBytesRead < maxBytesToRead);
 
-  /* bytesToRead = std::min(chunkSize, maxBytesToRead - totalBytesRead); */
-
-  /* this->source.read((char*)inBuffer.value, bytesToRead); */
-  /* totalBytesRead += bytesToRead; */
-
-  /* while (totalBytesRead < maxBytesToRead) { */
-  /*   this->middleware.handle(&inBuffer, &outBuffer); */
-
-  /*   this->target.write((char*)outBuffer.value, bytesRead); */
-
-  /*   bytesToRead = std::min(chunkSize, maxBytesToRead - totalBytesRead); */
-  /*   this->source.read((char*)inBuffer.value, bytesToRead); */
-  /*   totalBytesRead += bytesToRead; */
-  /* } */
+  this->middleware.onFinish(&inBuffer, &outBuffer);
 }

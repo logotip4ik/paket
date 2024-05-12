@@ -5,6 +5,18 @@
 #define lluint long long unsigned int
 #define MAX_PATH_LENGTH 64
 
+#define CHUNK_SIZE 4096
+
+enum struct PktMode {
+  Source,
+  Dest,
+};
+
+enum struct AesMode {
+  Encrypt,
+  Decrypt,
+};
+
 const static char* PKT_HEADER = "PKT";
 const static int PKT_HEADER_SIZE = sizeof(char) * 3;
 

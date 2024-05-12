@@ -1,18 +1,15 @@
 #pragma once
 
 #include <fstream>
+#include <openssl/evp.h>
+#include <openssl/aes.h>
 
 #include "../constants.h"
 
-#define CHUNK_SIZE 4096
-
-enum struct PktMode {
-  Source,
-  Dest,
-};
-
 struct Buf {
   int size;
+  int read = 0;
+  int wrote = 0;
   unsigned char* value;
 
   Buf(int size);
@@ -22,6 +19,20 @@ struct Buf {
 class PktMiddleware {
 public:
   void handle(Buf* source, Buf* target);
+  void onFinish(Buf* source, Buf* target);
+};
+
+class PktAesMiddleware : public PktMiddleware {
+private:
+  AesMode mode;
+  EVP_CIPHER_CTX* ctx;
+
+public:
+  PktAesMiddleware(AesMode mode, const unsigned char* key, const unsigned char* iv);
+  ~PktAesMiddleware();
+
+  void handle(Buf* source, Buf* target);
+  void onFinish(Buf* source, Buf* target);
 };
 
 struct PktRWOptions {
