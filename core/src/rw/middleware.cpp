@@ -52,7 +52,7 @@ void PktAesMiddleware::handle(Buf *in, Buf *out) {
       break;
     case AesMode::Decrypt:
       if (EVP_DecryptUpdate(ctx, out->value, &out->wrote, in->value, in->read) != 1) {
-        std::cerr << "Error dencrypting data\n";
+        std::cerr << "Error decrypting data\n";
         exit(EXIT_FAILURE);
       }
       break;

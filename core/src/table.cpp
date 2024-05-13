@@ -2,7 +2,10 @@
 #include <stdexcept>
 #include <algorithm>
 
-#include "serialize.h"
+#include <openssl/evp.h>
+#include <openssl/aes.h>
+
+#include "table.h"
 
 std::vector<SerializedLeaf> serializeLeafs(std::vector<Leaf>& leafs, int baseOffset) {
   lluint prevContentsEnd = baseOffset;
@@ -27,14 +30,6 @@ std::vector<SerializedLeaf> serializeLeafs(std::vector<Leaf>& leafs, int baseOff
 
     prevContentsEnd = serialized[i].contents + leafs[i].length;
   }
-
-  /* std::sort( */
-  /*   serialized.begin(), */
-  /*   serialized.end(), */
-  /*   [](SerializedLeaf l1, SerializedLeaf l2) { */
-  /*     return l2.contents < l1.contents; */
-  /*   } */
-  /* ); */
 
   return serialized;
 }
@@ -78,4 +73,56 @@ std::vector<Leaf> deserializeLeafs(std::vector<SerializedLeaf>& serialized, llui
   }
 
   return leafs;
+}
+
+void encryptTable(Buf* key, Buf* iv, Buf* table, Buf* encryptedTable) {
+  EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
+
+  if (!ctx) {
+      std::cerr << "Error creating cipher context\n";
+      exit(EXIT_FAILURE);
+  }
+
+  if (EVP_EncryptInit_ex(ctx, EVP_aes_256_ctr(), NULL, key->value, iv->value) != 1) {
+    std::cerr << "Error initializing encryption\n";
+    exit(EXIT_FAILURE);
+  }
+
+  if (EVP_EncryptUpdate(ctx, encryptedTable->value, &encryptedTable->wrote, table->value, table->size) != 1) {
+    std::cerr << "Error encrypting data\n";
+    exit(EXIT_FAILURE);
+  }
+
+  if (EVP_EncryptFinal_ex(ctx, encryptedTable->value, &encryptedTable->wrote) != 1) {
+    std::cerr << "Error finalizing encryption\n";
+    exit(EXIT_FAILURE);
+  }
+
+  EVP_CIPHER_CTX_free(ctx);
+}
+
+void decryptTable(Buf* key, Buf* iv, Buf* encryptedTable, Buf* table) {
+  EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
+
+  if (!ctx) {
+      std::cerr << "Error creating cipher context\n";
+      exit(EXIT_FAILURE);
+  }
+
+  if (EVP_DecryptInit_ex(ctx, EVP_aes_256_ctr(), NULL, key->value, iv->value) != 1) {
+    std::cerr << "Error initializing encryption\n";
+    exit(EXIT_FAILURE);
+  }
+
+  if (EVP_DecryptUpdate(ctx, table->value, &table->wrote, encryptedTable->value, encryptedTable->size) != 1) {
+    std::cerr << "Error encrypting data\n";
+    exit(EXIT_FAILURE);
+  }
+
+  if (EVP_DecryptFinal_ex(ctx, table->value, &table->wrote) != 1) {
+    std::cerr << "Error finalizing encryption\n";
+    exit(EXIT_FAILURE);
+  }
+
+  EVP_CIPHER_CTX_free(ctx);
 }

@@ -4,7 +4,7 @@
 
 #include "leafs.h"
 #include "files.h"
-#include "serialize.h"
+#include "table.h"
 #include "rw/rw.h"
 #include "keys/keys.h"
 
@@ -17,6 +17,11 @@ void encrypt(std::string rootPath) {
     std::cout << "path not found" << std::endl;
     return;
   }
+
+  Buf key(32);
+  memcpy(key.value, _key.c_str(), _key.size());
+  Buf iv(16);
+  makeIvKeyFromKey(std::string(_key), &iv);
 
   Leaf root = traverse_path(rootPath);
 
@@ -34,22 +39,19 @@ void encrypt(std::string rootPath) {
   std::vector<SerializedLeaf> serialized = serializeLeafs(leafs, baseOffset);
   std::cout << "base offset: " << baseOffset << std::endl;
 
-  // todo: encrypt table
   Buf table(SERIALIZED_LEAF_SIZE * leafs.size());
+  Buf encryptedTable(SERIALIZED_LEAF_SIZE * leafs.size());
+
   makeTable(&table, serialized);
+  encryptTable(&key, &iv, &table, &encryptedTable);
 
   int leafsCount = serialized.size();
   // order is important
   file.write((char*)(&leafsCount), sizeof(int));
-  file.write((char*)(table.value), table.size);
+  file.write((char*)(encryptedTable.value), table.size);
 
   // todo: add multithreading
   /* std::vector<std::thread> threads(serialized.size()); */
-
-  Buf key(32);
-  memcpy(key.value, _key.c_str(), _key.size());
-  Buf iv(16);
-  makeIvKeyFromKey(std::string(_key), &iv);
 
   for (size_t i = 0; i < serialized.size(); i++) {
     const SerializedLeaf& leaf = serialized[i];
@@ -84,26 +86,33 @@ void decrypt(std::string paket) {
     return;
   }
 
+  Buf key(32);
+  memcpy(key.value, _key.c_str(), _key.size());
+  Buf iv(16);
+  makeIvKeyFromKey(std::string(_key), &iv);
+
   int leafsCount;
   file.read((char*)(&leafsCount), sizeof(leafsCount));
 
+  Buf encryptedTable(SERIALIZED_LEAF_SIZE * leafsCount);
   Buf table(SERIALIZED_LEAF_SIZE * leafsCount);
 
-  file.read((char*)(table.value), table.size);
+  file.read((char*)(encryptedTable.value), encryptedTable.size);
+  decryptTable(&key, &iv, &encryptedTable, &table);
 
   std::vector<SerializedLeaf> serialized = parseTable(&table);
   std::vector<Leaf> leafs = deserializeLeafs(serialized, getFileSize(paket));
 
   for (const Leaf& leaf : leafs) {
     std::cout << leaf << std::endl;
+
+    if (leaf.contents > 99999) {
+      std::cerr << "probably someting went wrong" << std::endl;
+      exit(EXIT_FAILURE);
+    }
   }
 
   rebuildFolderTree(leafs);
-
-  Buf key(32);
-  memcpy(key.value, _key.c_str(), _key.size());
-  Buf iv(16);
-  makeIvKeyFromKey(std::string(_key), &iv);
 
   // todo: add multithreading
   /* std::vector<std::thread> threads(serialized.size()); */
