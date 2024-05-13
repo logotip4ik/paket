@@ -53,3 +53,16 @@ void rebuildFolderTree(std::vector<Leaf>& leafs) {
   }
 }
 
+char getFileAttrs(fs::path path) {
+  char attrs = 0;
+
+  fs::perms p = fs::status(path).permissions();
+
+  if (fs::perms::none != (fs::perms::owner_exec & p)) {
+    attrs |= (char)FileAttrs::Execution;
+  }
+
+  std::cout << path.c_str() << " " << (short)attrs << std::endl;
+
+  return attrs;
+}

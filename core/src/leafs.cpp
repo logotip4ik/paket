@@ -26,6 +26,7 @@ Leaf traverse_path(std::string& _path) {
     leaf.children = traverse_leaf(leaf);
   } else {
     leaf.length = getFileSize(leaf.path);
+    leaf.attrs = getFileAttrs(leaf.path);
   }
 
   return leaf;
@@ -46,6 +47,7 @@ std::vector<Leaf> traverse_leaf(Leaf& leaf) {
       child.children = traverse_leaf(child);
     } else {
       child.length = getFileSize(child.path);
+      child.attrs = getFileAttrs(leaf.path);
     }
 
     children.push_back(child);

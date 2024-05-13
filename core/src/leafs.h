@@ -6,6 +6,7 @@
 #include "constants.h"
 
 struct Leaf {
+  char attrs;
   bool isFolder;
   fs::path path;
 

@@ -10,6 +10,7 @@
 
 struct SerializedLeaf {
   bool isFolder;
+  char attrs;
   char path[MAX_PATH_LENGTH];
   // where the file contents (bytes) starts in pkt file
   // they end with next leaf contents or up to the end of the file

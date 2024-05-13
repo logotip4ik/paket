@@ -3,7 +3,7 @@
 #include <filesystem>
 
 #define lluint long long unsigned int
-#define MAX_PATH_LENGTH 64
+#define MAX_PATH_LENGTH 62
 
 #define CHUNK_SIZE 4096
 
@@ -15,6 +15,10 @@ enum struct PktMode {
 enum struct AesMode {
   Encrypt,
   Decrypt,
+};
+
+enum struct FileAttrs {
+  Execution = 1,
 };
 
 const static char* PKT_HEADER = "PKT";
