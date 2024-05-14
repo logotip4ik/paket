@@ -17,7 +17,7 @@ struct Leaf {
   std::vector<Leaf> children;
 };
 
-std::ostream& operator <<(std::ostream& stream, const Leaf leaf);
-Leaf traverse_path(std::string& path);
-std::vector<Leaf> traverse_leaf(Leaf& leaf);
-std::vector<Leaf> unwind(Leaf& leaf);
+std::ostream &operator<<(std::ostream &stream, const Leaf leaf);
+Leaf traverse_path(std::string &path);
+std::vector<Leaf> traverse_leaf(Leaf &leaf);
+std::vector<Leaf> unwind(Leaf &leaf);

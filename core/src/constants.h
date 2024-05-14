@@ -21,11 +21,10 @@ enum struct FileAttrs {
   Execution = 1,
 };
 
-const static char* PKT_HEADER = "PKT";
+const static char *PKT_HEADER = "PKT";
 const static int PKT_HEADER_SIZE = sizeof(char) * 3;
 
 const static short PKT_VERSION = 5;
 const static short PKT_VERSION_SIZE = sizeof(PKT_VERSION);
 
 namespace fs = std::filesystem;
-

@@ -1,8 +1,8 @@
 #pragma once
 
+#include <filesystem>
 #include <fstream>
 #include <string>
-#include <filesystem>
 #include <vector>
 
 #include "constants.h"
@@ -14,11 +14,11 @@ struct Header {
 };
 
 std::ofstream preparePktFile(fs::path filename);
-bool validateHeader(std::ifstream& os);
+bool validateHeader(std::ifstream &os);
 lluint padFileSize(lluint size);
 lluint getFileSize(fs::path path);
 char getFileAttrs(fs::path path);
 
 // it filters out files inside
-void rebuildFolderTree(std::vector<Leaf>& leafs);
-
+void rebuildFolderTree(std::vector<Leaf> &leafs);
+void rebuildAttrsTree(std::vector<Leaf> &leafs);

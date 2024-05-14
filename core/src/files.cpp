@@ -3,18 +3,21 @@
 #include "files.h"
 
 std::ofstream preparePktFile(fs::path filename) {
-  std::ofstream file(filename.replace_extension("pkt"), std::ios::binary | std::ios::trunc);
+  std::ofstream file(
+    filename.replace_extension("pkt"),
+    std::ios::binary | std::ios::trunc
+  );
 
   file.write(PKT_HEADER, PKT_HEADER_SIZE);
-  file.write((char*)(&PKT_VERSION), PKT_VERSION_SIZE);
+  file.write((char *)(&PKT_VERSION), PKT_VERSION_SIZE);
 
   return file;
 }
 
-bool validateHeader(std::ifstream& os) {
+bool validateHeader(std::ifstream &os) {
   std::string header = std::string(PKT_HEADER_SIZE, ' ');
 
-  os.read((char*)(&header), PKT_HEADER_SIZE);
+  os.read((char *)(&header), PKT_HEADER_SIZE);
 
   if (header != PKT_HEADER) {
     return false;
@@ -43,13 +46,29 @@ lluint padFileSize(lluint size) {
   return size + (divisibleBy - (size % divisibleBy));
 }
 
-void rebuildFolderTree(std::vector<Leaf>& leafs) {
-  for (const Leaf& leaf : leafs) {
+void rebuildFolderTree(std::vector<Leaf> &leafs) {
+  for (const Leaf &leaf : leafs) {
     if (!leaf.isFolder) {
       continue;
     }
 
     fs::create_directories(leaf.path);
+  }
+}
+
+void rebuildAttrsTree(std::vector<Leaf> &leafs) {
+  for (const Leaf &leaf : leafs) {
+    if (leaf.isFolder || leaf.attrs == 0) {
+      continue;
+    }
+
+    fs::perms p;
+
+    if (leaf.attrs & (char)FileAttrs::Execution) {
+      p |= fs::perms::owner_exec;
+    }
+
+    fs::permissions(leaf.path, p, fs::perm_options::add);
   }
 }
 

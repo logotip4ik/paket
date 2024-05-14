@@ -1,5 +1,5 @@
-#include <iostream>
 #include <bitset>
+#include <iostream>
 
 #include "./rw.h"
 
@@ -8,11 +8,9 @@ Buf::Buf(int size) {
   this->value = new unsigned char[size];
 }
 
-Buf::~Buf() {
-  free(this->value);
-}
+Buf::~Buf() { free(this->value); }
 
-PktRW::PktRW(PktRWOptions& options) {
+PktRW::PktRW(PktRWOptions &options) {
   this->mode = options.mode;
   this->offset = options.offset;
 
@@ -26,9 +24,11 @@ PktRW::PktRW(PktRWOptions& options) {
     }
   } else if (this->mode == PktMode::Dest) {
     this->source = std::ifstream(options.target, std::ios::binary | std::ios::in);
-    // out|in allows to constant reads and writes. Without this only last leaf contents would appear
-    // in the .pkt file, everything before (until the table ?) would be overwritten with 0
-    this->target = std::ofstream(options.pkt, std::ios::binary | std::ios::out | std::ios::in);
+    // out|in allows to constant reads and writes. Without this only last leaf
+    // contents would appear in the .pkt file, everything before (until the
+    // table ?) would be overwritten with 0
+    this->target = std::ofstream(options.pkt, std::ios::binary | std::ios::out |
+                                                  std::ios::in);
 
     this->target.seekp(this->offset);
     if (this->target.fail() || this->target.bad()) {
@@ -42,31 +42,31 @@ PktRW::~PktRW() {
   this->target.close();
 }
 
-void PktRW::process(PktMiddleware& middleware) {
+void PktRW::process(PktMiddleware &middleware) {
   Buf inBuffer = Buf(CHUNK_SIZE);
   Buf outBuffer = Buf(CHUNK_SIZE);
 
-  this->source.read((char*)inBuffer.value, inBuffer.size);
+  this->source.read((char *)inBuffer.value, inBuffer.size);
 
   while ((inBuffer.read = this->source.gcount()) > 0) {
     middleware.handle(&inBuffer, &outBuffer);
 
-    #ifndef __PERF
+#ifndef __PERF
     if (outBuffer.wrote != inBuffer.read) {
       std::cerr << "Bytes wrote and bytes read MUST match!" << std::endl;
       exit(EXIT_FAILURE);
     }
-    #endif
+#endif
 
-    this->target.write((char*)outBuffer.value, outBuffer.wrote);
+    this->target.write((char *)outBuffer.value, outBuffer.wrote);
 
-    this->source.read((char*)inBuffer.value, inBuffer.size);
+    this->source.read((char *)inBuffer.value, inBuffer.size);
   }
 
   middleware.onFinish(&inBuffer, &outBuffer);
 }
 
-void PktRW::process(PktMiddleware& middleware, lluint maxBytesToRead) {
+void PktRW::process(PktMiddleware &middleware, lluint maxBytesToRead) {
   lluint totalBytesRead = 0;
 
   Buf inBuffer = Buf(CHUNK_SIZE);
@@ -76,19 +76,19 @@ void PktRW::process(PktMiddleware& middleware, lluint maxBytesToRead) {
 
   do {
     inBuffer.read = std::min(chunkSize, maxBytesToRead - totalBytesRead);
-    this->source.read((char*)inBuffer.value, inBuffer.read);
+    this->source.read((char *)inBuffer.value, inBuffer.read);
     totalBytesRead += inBuffer.read;
 
     middleware.handle(&inBuffer, &outBuffer);
 
-    #ifndef __PERF
+#ifndef __PERF
     if (outBuffer.wrote != inBuffer.read) {
       std::cerr << "Bytes wrote and bytes read MUST match!" << std::endl;
       exit(EXIT_FAILURE);
     }
-    #endif
+#endif
 
-    this->target.write((char*)outBuffer.value, outBuffer.wrote);
+    this->target.write((char *)outBuffer.value, outBuffer.wrote);
   } while (totalBytesRead < maxBytesToRead);
 
   middleware.onFinish(&inBuffer, &outBuffer);

@@ -1,12 +1,12 @@
-#include <iostream>
 #include <algorithm>
+#include <iostream>
 #include <thread>
 
-#include "leafs.h"
 #include "files.h"
-#include "table.h"
-#include "rw/rw.h"
 #include "keys/keys.h"
+#include "leafs.h"
+#include "rw/rw.h"
+#include "table.h"
 
 const static std::string _key = "someting";
 
@@ -30,11 +30,9 @@ void encrypt(std::string rootPath) {
 
   std::vector<Leaf> leafs = unwind(root);
 
-  const int baseOffset =
-    PKT_HEADER_SIZE
-    + PKT_VERSION_SIZE
-    + sizeof(int) // number of leafs
-    + SERIALIZED_LEAF_SIZE * leafs.size(); // table itself
+  const int baseOffset = PKT_HEADER_SIZE + PKT_VERSION_SIZE +
+                         sizeof(int) // number of leafs
+                         + SERIALIZED_LEAF_SIZE * leafs.size(); // table itself
 
   std::vector<SerializedLeaf> serialized = serializeLeafs(leafs, baseOffset);
   std::cout << "base offset: " << baseOffset << std::endl;
@@ -47,14 +45,14 @@ void encrypt(std::string rootPath) {
 
   int leafsCount = serialized.size();
   // order is important
-  file.write((char*)(&leafsCount), sizeof(int));
-  file.write((char*)(encryptedTable.value), table.size);
+  file.write((char *)(&leafsCount), sizeof(int));
+  file.write((char *)(encryptedTable.value), table.size);
 
   // todo: add multithreading
   /* std::vector<std::thread> threads(serialized.size()); */
 
   for (size_t i = 0; i < serialized.size(); i++) {
-    const SerializedLeaf& leaf = serialized[i];
+    const SerializedLeaf &leaf = serialized[i];
 
     if (leaf.isFolder) {
       continue;
@@ -72,7 +70,8 @@ void encrypt(std::string rootPath) {
     PktRW rw(options);
 
     /* PktDummyMiddleware middleware = PktDummyMiddleware(); */
-    PktAesMiddleware middleware = PktAesMiddleware(AesMode::Encrypt, key.value, iv.value);
+    PktAesMiddleware middleware =
+        PktAesMiddleware(AesMode::Encrypt, key.value, iv.value);
 
     rw.process(middleware);
   }
@@ -92,18 +91,18 @@ void decrypt(std::string paket) {
   makeIvKeyFromKey(std::string(_key), &iv);
 
   int leafsCount;
-  file.read((char*)(&leafsCount), sizeof(leafsCount));
+  file.read((char *)(&leafsCount), sizeof(leafsCount));
 
   Buf encryptedTable(SERIALIZED_LEAF_SIZE * leafsCount);
   Buf table(SERIALIZED_LEAF_SIZE * leafsCount);
 
-  file.read((char*)(encryptedTable.value), encryptedTable.size);
+  file.read((char *)(encryptedTable.value), encryptedTable.size);
   decryptTable(&key, &iv, &encryptedTable, &table);
 
   std::vector<SerializedLeaf> serialized = parseTable(&table);
   std::vector<Leaf> leafs = deserializeLeafs(serialized, getFileSize(paket));
 
-  for (const Leaf& leaf : leafs) {
+  for (const Leaf &leaf : leafs) {
     std::cout << leaf << std::endl;
 
     if (leaf.contents > 99999) {
@@ -116,7 +115,7 @@ void decrypt(std::string paket) {
 
   // todo: add multithreading
   /* std::vector<std::thread> threads(serialized.size()); */
-  for (const Leaf& leaf: leafs) {
+  for (const Leaf &leaf : leafs) {
     if (leaf.isFolder) {
       continue;
     }
@@ -133,13 +132,16 @@ void decrypt(std::string paket) {
     PktRW rw(options);
 
     /* PktDummyMiddleware middleware = PktDummyMiddleware(); */
-    PktAesMiddleware middleware = PktAesMiddleware(AesMode::Encrypt, key.value, iv.value);
+    PktAesMiddleware middleware =
+        PktAesMiddleware(AesMode::Encrypt, key.value, iv.value);
 
     rw.process(middleware, leaf.length);
   }
+
+  rebuildAttrsTree(leafs);
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   if (argc < 2) {
     std::cout << "requires at least one file" << std::endl;
     return 1;
@@ -147,7 +149,8 @@ int main(int argc, char** argv) {
 
   std::string pktExt = ".pkt";
   std::string path = argv[1];
-  if (std::equal(pktExt.rbegin(), pktExt.rend(), path.rbegin()) && fs::is_regular_file(path)) {
+  if (std::equal(pktExt.rbegin(), pktExt.rend(), path.rbegin()) &&
+      fs::is_regular_file(path)) {
     decrypt(path);
   } else {
     encrypt(path);
