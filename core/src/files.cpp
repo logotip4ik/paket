@@ -75,13 +75,19 @@ void rebuildAttrsTree(std::vector<Leaf> &leafs) {
 char getFileAttrs(fs::path path) {
   char attrs = 0;
 
-  fs::perms p = fs::status(path).permissions();
+  fs::file_status s = fs::status(path);
+
+  if (s.type() == fs::file_type::directory) {
+    return attrs;
+  }
+
+  fs::perms p = s.permissions();
 
   if (fs::perms::none != (fs::perms::owner_exec & p)) {
     attrs |= (char)FileAttrs::Execution;
   }
 
-  std::cout << path.c_str() << " " << (short)attrs << std::endl;
+  std::cout << path.c_str() << " attrs: " << (short)attrs << std::endl;
 
   return attrs;
 }

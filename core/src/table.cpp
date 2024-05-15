@@ -15,14 +15,15 @@ std::vector<SerializedLeaf> serializeLeafs(std::vector<Leaf> &leafs,
 
   for (size_t i = 0; i < leafs.size(); i++) {
     const char *path = leafs[i].path.c_str();
+    const short pathLen = strlen(path);
 
-    if (strlen(path) > MAX_PATH_LENGTH) {
+    if (pathLen > MAX_PATH_LENGTH) {
       throw std::length_error(std::string("path length must be less then ") +
                               std::to_string(MAX_PATH_LENGTH) +
                               std::string(" but encourted: ") + path);
     }
 
-    memcpy(&serialized[i].path, path, MAX_PATH_LENGTH);
+    memcpy(&serialized[i].path, path, pathLen);
 
     serialized[i].contents = 0;
 

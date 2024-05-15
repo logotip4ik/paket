@@ -70,8 +70,7 @@ void encrypt(std::string rootPath) {
     PktRW rw(options);
 
     /* PktDummyMiddleware middleware = PktDummyMiddleware(); */
-    PktAesMiddleware middleware =
-        PktAesMiddleware(AesMode::Encrypt, key.value, iv.value);
+    PktAesMiddleware middleware = PktAesMiddleware(AesMode::Encrypt, key.value, iv.value);
 
     rw.process(middleware);
   }
@@ -132,8 +131,7 @@ void decrypt(std::string paket) {
     PktRW rw(options);
 
     /* PktDummyMiddleware middleware = PktDummyMiddleware(); */
-    PktAesMiddleware middleware =
-        PktAesMiddleware(AesMode::Encrypt, key.value, iv.value);
+    PktAesMiddleware middleware = PktAesMiddleware(AesMode::Encrypt, key.value, iv.value);
 
     rw.process(middleware, leaf.length);
   }
