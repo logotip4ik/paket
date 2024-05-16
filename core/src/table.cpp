@@ -80,7 +80,7 @@ std::vector<Leaf> deserializeLeafs(std::vector<SerializedLeaf> &serialized,
   return leafs;
 }
 
-void encryptTable(Buf *key, Buf *iv, Buf *table, Buf *encryptedTable) {
+void encryptBuf(Buf *key, Buf *iv, Buf *buf, Buf *encryptedBuf) {
   EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
 
   if (!ctx) {
@@ -96,14 +96,14 @@ void encryptTable(Buf *key, Buf *iv, Buf *table, Buf *encryptedTable) {
   }
 
   if (
-    EVP_EncryptUpdate(ctx, encryptedTable->value, &encryptedTable->wrote,table->value, table->size) != 1
+    EVP_EncryptUpdate(ctx, encryptedBuf->value, &encryptedBuf->wrote, buf->value, buf->size) != 1
   ) {
     std::cerr << "Error encrypting data\n";
     exit(EXIT_FAILURE);
   }
 
   if (
-    EVP_EncryptFinal_ex(ctx, encryptedTable->value, &encryptedTable->wrote) != 1
+    EVP_EncryptFinal_ex(ctx, encryptedBuf->value, &encryptedBuf->wrote) != 1
   ) {
     std::cerr << "Error finalizing encryption\n";
     exit(EXIT_FAILURE);
@@ -112,7 +112,7 @@ void encryptTable(Buf *key, Buf *iv, Buf *table, Buf *encryptedTable) {
   EVP_CIPHER_CTX_free(ctx);
 }
 
-void decryptTable(Buf *key, Buf *iv, Buf *encryptedTable, Buf *table) {
+void decryptBuf(Buf *key, Buf *iv, Buf *encryptedBuf, Buf *buf) {
   EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
 
   if (!ctx) {
@@ -128,13 +128,13 @@ void decryptTable(Buf *key, Buf *iv, Buf *encryptedTable, Buf *table) {
   }
 
   if (
-    EVP_DecryptUpdate(ctx, table->value, &table->wrote, encryptedTable->value,encryptedTable->size) != 1
+    EVP_DecryptUpdate(ctx, buf->value, &buf->wrote, encryptedBuf->value,encryptedBuf->size) != 1
   ) {
     std::cerr << "Error encrypting data\n";
     exit(EXIT_FAILURE);
   }
 
-  if (EVP_DecryptFinal_ex(ctx, table->value, &table->wrote) != 1) {
+  if (EVP_DecryptFinal_ex(ctx, buf->value, &buf->wrote) != 1) {
     std::cerr << "Error finalizing encryption\n";
     exit(EXIT_FAILURE);
   }

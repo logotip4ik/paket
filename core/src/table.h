@@ -20,8 +20,8 @@ struct SerializedLeaf {
 const static int SERIALIZED_LEAF_SIZE = sizeof(SerializedLeaf);
 
 void makeTable(Buf *table, std::vector<SerializedLeaf> leafs);
-void encryptTable(Buf *key, Buf *iv, Buf *table, Buf *encryptedTable);
-void decryptTable(Buf *key, Buf *iv, Buf *encryptedTable, Buf *table);
+void encryptBuf(Buf *key, Buf *iv, Buf *buf, Buf *encryptedBuf);
+void decryptBuf(Buf *key, Buf *iv, Buf *encryptedBuf, Buf *buf);
 std::vector<SerializedLeaf> parseTable(Buf *table);
 std::vector<SerializedLeaf> serializeLeafs(std::vector<Leaf> &leafs, int baseOffset);
 std::vector<Leaf> deserializeLeafs(std::vector<SerializedLeaf> &leafs, lluint pktFileSize);

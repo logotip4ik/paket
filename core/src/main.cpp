@@ -41,11 +41,17 @@ void encrypt(std::string rootPath) {
   Buf encryptedTable(SERIALIZED_LEAF_SIZE * leafs.size());
 
   makeTable(&table, serialized);
-  encryptTable(&key, &iv, &table, &encryptedTable);
+  encryptBuf(&key, &iv, &table, &encryptedTable);
 
   int leafsCount = serialized.size();
+  Buf leafsCountBuf = Buf(sizeof(leafsCount));
+  Buf encrypedLeafsCountBuf = Buf(sizeof(leafsCount));
+
+  memcpy(leafsCountBuf.value, &leafsCount, sizeof(leafsCount));
+  encryptBuf(&key, &iv, &leafsCountBuf, &encrypedLeafsCountBuf);
+
   // order is important
-  file.write((char *)(&leafsCount), sizeof(int));
+  file.write((char *)(encrypedLeafsCountBuf.value), encrypedLeafsCountBuf.size);
   file.write((char *)(encryptedTable.value), table.size);
 
   // todo: add multithreading
@@ -90,13 +96,24 @@ void decrypt(std::string paket) {
   makeIvKeyFromKey(std::string(_key), &iv);
 
   int leafsCount;
-  file.read((char *)(&leafsCount), sizeof(leafsCount));
+  Buf encrypedLeafsCountBuf = Buf(sizeof(leafsCount));
+  Buf leafsCountBuf = Buf(sizeof(leafsCount));
+
+  file.read((char *)(encrypedLeafsCountBuf.value), encrypedLeafsCountBuf.size);
+
+  decryptBuf(&key, &iv, &encrypedLeafsCountBuf, &leafsCountBuf);
+  memcpy(&leafsCount, leafsCountBuf.value, leafsCountBuf.size);
+
+  if (leafsCount > 99) {
+    std::cerr << "something probably went wrong. check your key" << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
   Buf encryptedTable(SERIALIZED_LEAF_SIZE * leafsCount);
   Buf table(SERIALIZED_LEAF_SIZE * leafsCount);
 
   file.read((char *)(encryptedTable.value), encryptedTable.size);
-  decryptTable(&key, &iv, &encryptedTable, &table);
+  decryptBuf(&key, &iv, &encryptedTable, &table);
 
   std::vector<SerializedLeaf> serialized = parseTable(&table);
   std::vector<Leaf> leafs = deserializeLeafs(serialized, getFileSize(paket));
