@@ -87,7 +87,9 @@ char getFileAttrs(fs::path path) {
     attrs |= (char)FileAttrs::Execution;
   }
 
+#ifdef DEBUG
   std::cout << path.c_str() << " attrs: " << (short)attrs << std::endl;
+#endif
 
   return attrs;
 }
