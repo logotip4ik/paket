@@ -20,7 +20,7 @@ std::vector<SerializedLeaf> serializeLeafs(std::vector<Leaf> &leafs, int baseOff
 
   for (size_t i = 0; i < leafs.size(); i++) {
     const char *path = leafs[i].path.c_str();
-    const short pathLen = strlen(path);
+    const short pathLen = strlen(path) - absolutePathOffset;
 
     if (pathLen > MAX_PATH_LENGTH) {
       std::cout << std::string("path length must be less then ") +
