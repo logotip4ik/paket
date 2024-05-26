@@ -1,0 +1,7 @@
+*.pkt
+
+test*
+
+release
+playground
+debug
