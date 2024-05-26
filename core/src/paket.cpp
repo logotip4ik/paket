@@ -7,15 +7,11 @@
 #include "constants.h"
 #include "table.h"
 
-#define PATH_NOT_FOUND 1
-#define NOT_VALID_HEADER 2
-#define WRONG_KEY 3
-
-int encrypt(std::string rootPath, std::string outputPath, std::string _key) {
+PaketRes encrypt(std::string rootPath, std::string outputPath, std::string _key) {
   fs::file_status pathStatus = fs::status(rootPath);
 
   if (pathStatus.type() == fs::file_type::not_found) {
-    return PATH_NOT_FOUND;
+    return PaketRes::PathNotFound;
   }
 
   Buf key(32);
@@ -87,14 +83,14 @@ int encrypt(std::string rootPath, std::string outputPath, std::string _key) {
     rw.process(middleware);
   }
 
-  return 0;
+  return PaketRes::Ok;
 }
 
-int decrypt(std::string paket, std::string outputPath, std::string _key) {
+PaketRes decrypt(std::string paket, std::string outputPath, std::string _key) {
   std::ifstream file(paket);
 
   if (!validateHeader(file)) {
-    return NOT_VALID_HEADER;
+    return PaketRes::NotValidHeader;
   }
 
   Buf key(32);
@@ -111,8 +107,8 @@ int decrypt(std::string paket, std::string outputPath, std::string _key) {
   decryptBuf(&key, &iv, &encrypedLeafsCountBuf, &leafsCountBuf);
   memcpy(&leafsCount, leafsCountBuf.value, leafsCountBuf.size);
 
-  if (leafsCount > 99) {
-    return WRONG_KEY;
+  if (leafsCount > 10) {
+    return PaketRes::WrongKey;
   }
 
   Buf encryptedTable(SERIALIZED_LEAF_SIZE * leafsCount);
@@ -135,7 +131,7 @@ int decrypt(std::string paket, std::string outputPath, std::string _key) {
 #ifdef DEBUG
       std::cerr << "i mean, just for your computer safety..." << std::endl;
 #endif
-      exit(EXIT_FAILURE);
+      return PaketRes::WrongKey;
     }
   }
 
@@ -169,6 +165,6 @@ int decrypt(std::string paket, std::string outputPath, std::string _key) {
 
   rebuildAttrsTree(leafs);
 
-  return 0;
+  return PaketRes::Ok;
 }
 

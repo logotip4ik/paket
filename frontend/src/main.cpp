@@ -61,15 +61,27 @@ void process_cb(Fl_Widget* widget, void* userdata) {
           output_path = chooser.filename();
       }
 
-      std::cout << output_path << std::endl;
-
-      decrypt(
+      PaketRes res = decrypt(
         ctx->path.string(),
         output_path,
         key
       );
 
-      fl_message("Done decrypting!");
+      switch (res) {
+        case PaketRes::Ok: {
+          fl_message("Done decrypting!");
+          return;
+        }
+        case PaketRes::NotValidHeader: {
+          fl_alert("Not valid file specified for decrypting, try file that ends with .pkt.");
+          return;
+        }
+        case PaketRes::WrongKey: {
+          fl_alert("Try other key, this seems to be wrong.");
+        }
+        default:
+          return;
+      };
 
       break;
     }
@@ -92,15 +104,23 @@ void process_cb(Fl_Widget* widget, void* userdata) {
 
       output_file.replace_extension(".pkt");
 
-      std::cout << output_file.string() << std::endl;
-
-      encrypt(
+      PaketRes res = encrypt(
         ctx->path.string(),
         output_file.string(),
         key
       );
 
-      fl_message("Done encrypting!");
+      switch (res) {
+        case PaketRes::Ok: {
+          fl_message("Done encrypting!");
+          return;
+        }
+
+        default: {
+          fl_alert("Something when wrong...");
+          return;
+        }
+      }
 
       break;
     }

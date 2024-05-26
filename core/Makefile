@@ -13,9 +13,11 @@ lib: $(sourceFiles)
 	mv *.o lib/
 	ar rcs lib/libpaket.a lib/*.o
 	rm lib/*.o
+	cp src/paket.h include/paket.h
 
 release-lib: $(sourceFiles)
 	$(CXX) $(buildFiles) $(customFlags) -D __PERF -O3 -c
 	mv *.o lib/
 	ar rcs lib/libpaket.a lib/*.o
 	rm lib/*.o
+	cp src/paket.h include/paket.h
