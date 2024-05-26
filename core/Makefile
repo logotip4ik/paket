@@ -6,10 +6,16 @@ packet: $(sourceFiles)
 	$(CXX) $(buildFiles) $(customFlags) -D DEBUG -L/opt/homebrew/Cellar/openssl@3/3.3.0/lib/ -lcrypto -lssl -o debug/paket
 
 release: $(sourceFiles)
-	$(CXX) $(buildFiles) $(customFlags) -D __PERF -L/opt/homebrew/Cellar/openssl@3/3.3.0/lib/ -lcrypto -lssl -o release/paket
+	$(CXX) $(buildFiles) $(customFlags) -D __PERF -O3 -L/opt/homebrew/Cellar/openssl@3/3.3.0/lib/ -lcrypto -lssl -o release/paket
+
+lib: $(sourceFiles)
+	$(CXX) $(buildFiles) $(customFlags) -c
+	mv *.o lib/
+	ar rcs lib/libpaket.a lib/*.o
+	rm lib/*.o
 
 release-lib: $(sourceFiles)
-	$(CXX) $(buildFiles) $(customFlags) -D __PERF -c
+	$(CXX) $(buildFiles) $(customFlags) -D __PERF -O3 -c
 	mv *.o lib/
 	ar rcs lib/libpaket.a lib/*.o
 	rm lib/*.o

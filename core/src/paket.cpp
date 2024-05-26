@@ -60,22 +60,24 @@ int encrypt(std::string rootPath, std::string outputPath, std::string _key) {
   /* std::vector<std::thread> threads(serialized.size()); */
 
   for (size_t i = 0; i < serialized.size(); i++) {
-    const SerializedLeaf &leaf = serialized[i];
+    const SerializedLeaf &sleaf = serialized[i];
 
-    if (leaf.isFolder) {
+    if (sleaf.isFolder) {
       continue;
     }
 
 #ifdef DEBUG
-    std::cout << leaf.path << " start: " << leaf.contents << std::endl;
+    std::cout << sleaf.path << " start: " << sleaf.contents << std::endl;
 #endif
 
     PktRWOptions options;
 
     options.mode = PktMode::Dest;
     options.pkt = output;
-    options.offset = leaf.contents;
-    options.target = leaf.path;
+    options.offset = sleaf.contents;
+    // Because path in serialized leaf is chopped down to the lowest folder, we need to read file
+    // contents from true file. Thus we take absolute (correct) path to file;
+    options.target = leafs[i].path;
 
     PktRW rw(options);
 

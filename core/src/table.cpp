@@ -7,9 +7,14 @@
 
 #include "table.h"
 
-std::vector<SerializedLeaf> serializeLeafs(std::vector<Leaf> &leafs,
-                                           int baseOffset) {
+std::vector<SerializedLeaf> serializeLeafs(std::vector<Leaf> &leafs, int baseOffset) {
   lluint prevContentsEnd = baseOffset;
+
+  std::string firstLeafPathString = leafs[0].path.string();
+  int filenameLength = strlen(leafs[0].path.filename().c_str());
+  int totalPathLength = firstLeafPathString.length();
+
+  int absolutePathOffset = totalPathLength - filenameLength;
 
   std::vector<SerializedLeaf> serialized(leafs.size());
 
@@ -18,12 +23,15 @@ std::vector<SerializedLeaf> serializeLeafs(std::vector<Leaf> &leafs,
     const short pathLen = strlen(path);
 
     if (pathLen > MAX_PATH_LENGTH) {
-      throw std::length_error(std::string("path length must be less then ") +
-                              std::to_string(MAX_PATH_LENGTH) +
-                              std::string(" but encourted: ") + path);
+      std::cout << std::string("path length must be less then ") +
+                       std::to_string(MAX_PATH_LENGTH) +
+                       std::string(" but encourted: ") + path
+                << std::endl;
+
+      exit(EXIT_FAILURE);
     }
 
-    memcpy(&serialized[i].path, path, pathLen);
+    memcpy(&serialized[i].path, path + absolutePathOffset, pathLen);
 
     serialized[i].contents = 0;
 
@@ -61,8 +69,7 @@ std::vector<SerializedLeaf> parseTable(Buf *table) {
   return leafs;
 }
 
-std::vector<Leaf> deserializeLeafs(std::vector<SerializedLeaf> &serialized,
-                                   lluint pktFileSize) {
+std::vector<Leaf> deserializeLeafs(std::vector<SerializedLeaf> &serialized, lluint pktFileSize) {
   int leafsCount = serialized.size();
   std::vector<Leaf> leafs(leafsCount);
 
