@@ -4,6 +4,7 @@
 
 #define lluint long long unsigned int
 #define MAX_PATH_LENGTH 62
+#define MAX_LEAFS_COUNT 25
 
 #define CHUNK_SIZE 4096
 

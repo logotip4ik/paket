@@ -107,7 +107,7 @@ PaketRes decrypt(std::string paket, std::string outputPath, std::string _key) {
   decryptBuf(&key, &iv, &encrypedLeafsCountBuf, &leafsCountBuf);
   memcpy(&leafsCount, leafsCountBuf.value, leafsCountBuf.size);
 
-  if (leafsCount > 10) {
+  if (leafsCount > MAX_LEAFS_COUNT) {
     return PaketRes::WrongKey;
   }
 
