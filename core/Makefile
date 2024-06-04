@@ -9,7 +9,7 @@ release: $(sourceFiles)
 	$(CXX) $(buildFiles) $(customFlags) -D __PERF -O3 -L/opt/homebrew/Cellar/openssl@3/3.3.0/lib/ -lcrypto -lssl -o release/paket
 
 lib: $(sourceFiles)
-	$(CXX) $(buildFiles) $(customFlags) -c
+	$(CXX) $(buildFiles) $(customFlags) -D DEBUG -c
 	mv *.o lib/
 	ar rcs lib/libpaket.a lib/*.o
 	rm lib/*.o

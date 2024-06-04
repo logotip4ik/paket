@@ -6,18 +6,18 @@
 #include "constants.h"
 
 struct Leaf {
-  char attrs;
-  bool isFolder;
+  char attrs = 0;
+  bool isFolder = false;
   fs::path path;
 
-  lluint length;
+  lluint length = 0;
   // only used at deserialization to simplify workflow
-  lluint contents;
+  lluint contents = 0;
 
   std::vector<Leaf> children;
 };
 
 std::ostream &operator<<(std::ostream &stream, const Leaf leaf);
-Leaf traverse_path(std::string &path);
-std::vector<Leaf> traverse_leaf(Leaf &leaf);
+Leaf traverse_path(std::string &path, std::string &outputPath);
+std::vector<Leaf> traverse_leaf(Leaf &leaf, std::string &outputPath);
 std::vector<Leaf> unwind(Leaf &leaf);

@@ -7,6 +7,8 @@ enum struct PaketRes {
   PathNotFound,
   NotValidHeader,
   WrongKey,
+  MaxLeafsCountReached,
+  Unknown,
 };
 
 PaketRes encrypt(std::string rootPath, std::string outputPath, std::string _key);

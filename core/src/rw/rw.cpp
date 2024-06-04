@@ -8,11 +8,16 @@ Buf::Buf(int size) {
   this->value = new unsigned char[size];
 }
 
-Buf::~Buf() { free(this->value); }
+Buf::~Buf() {
+  free(this->value);
+}
 
 PktRW::PktRW(PktRWOptions &options) {
   this->mode = options.mode;
   this->offset = options.offset;
+
+  // NOTE: there is a possibility to write and read from the same file!
+  // and this must not happen!!! It will eat all your ssd in seconds...
 
   if (this->mode == PktMode::Source) {
     this->source = std::ifstream(options.pkt, std::ios::binary | std::ios::in);

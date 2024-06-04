@@ -4,7 +4,8 @@
 
 #define lluint long long unsigned int
 #define MAX_PATH_LENGTH 62
-#define MAX_LEAFS_COUNT 25
+#define MAX_LEAFS_COUNT 100
+#define MAX_FILE_SIZE 64000000 // in bytes (64mb)
 
 #define CHUNK_SIZE 4096
 
@@ -27,5 +28,11 @@ const static int PKT_HEADER_SIZE = sizeof(char) * 3;
 
 const static short PKT_VERSION = 5;
 const static short PKT_VERSION_SIZE = sizeof(PKT_VERSION);
+
+const static char *BlacklistedPaths[] = {
+  ".git",
+  ".DS_Store"
+};
+const static short BlacklistedPathsLen = sizeof(BlacklistedPaths) / sizeof(BlacklistedPaths[0]);
 
 namespace fs = std::filesystem;

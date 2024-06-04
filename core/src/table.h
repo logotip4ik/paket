@@ -9,15 +9,18 @@
 #include "constants.h"
 
 struct SerializedLeaf {
-  bool isFolder;
-  char attrs;
+  // this should be moved to attrs
+  bool isFolder = false;
+  char attrs = 0;
   char path[MAX_PATH_LENGTH] = {0};
   // where the file contents (bytes) starts in pkt file
   // they end with next leaf contents or up to the end of the file
-  lluint contents;
+  lluint contents = 0;
 };
 
 const static int SERIALIZED_LEAF_SIZE = sizeof(SerializedLeaf);
+
+std::ostream &operator<<(std::ostream &stream, const SerializedLeaf leaf);
 
 void makeTable(Buf *table, std::vector<SerializedLeaf> leafs);
 void encryptBuf(Buf *key, Buf *iv, Buf *buf, Buf *encryptedBuf);

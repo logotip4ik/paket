@@ -47,15 +47,13 @@ PktAesMiddleware::~PktAesMiddleware() { EVP_CIPHER_CTX_free(this->ctx); }
 void PktAesMiddleware::handle(Buf *in, Buf *out) {
   switch (this->mode) {
   case AesMode::Encrypt:
-    if (EVP_EncryptUpdate(ctx, out->value, &out->wrote, in->value, in->read) !=
-        1) {
+    if (EVP_EncryptUpdate(ctx, out->value, &out->wrote, in->value, in->read) != 1) {
       std::cerr << "Error encrypting data\n";
       exit(EXIT_FAILURE);
     }
     break;
   case AesMode::Decrypt:
-    if (EVP_DecryptUpdate(ctx, out->value, &out->wrote, in->value, in->read) !=
-        1) {
+    if (EVP_DecryptUpdate(ctx, out->value, &out->wrote, in->value, in->read) != 1) {
       std::cerr << "Error decrypting data\n";
       exit(EXIT_FAILURE);
     }

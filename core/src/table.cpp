@@ -7,12 +7,19 @@
 
 #include "table.h"
 
+std::ostream &operator<<(std::ostream &stream, const SerializedLeaf leaf) {
+  stream << "[ path: " << leaf.path << ", isFolder: " << leaf.isFolder
+         << ", contents: " << leaf.contents << ", attrs: " << short(leaf.attrs)
+         << " ]";
+
+  return stream;
+}
+
 std::vector<SerializedLeaf> serializeLeafs(std::vector<Leaf> &leafs, int baseOffset) {
   lluint prevContentsEnd = baseOffset;
 
-  std::string firstLeafPathString = leafs[0].path.string();
-  int filenameLength = strlen(leafs[0].path.filename().c_str());
-  int totalPathLength = firstLeafPathString.length();
+  int filenameLength = leafs[0].path.filename().string().length();
+  int totalPathLength = leafs[0].path.string().length();
 
   int absolutePathOffset = totalPathLength - filenameLength;
 
@@ -33,13 +40,15 @@ std::vector<SerializedLeaf> serializeLeafs(std::vector<Leaf> &leafs, int baseOff
 
     memcpy(&serialized[i].path, path + absolutePathOffset, pathLen);
 
-    serialized[i].contents = 0;
-
     serialized[i].attrs = leafs[i].attrs;
     serialized[i].isFolder = leafs[i].isFolder;
     serialized[i].contents = prevContentsEnd;
 
-    prevContentsEnd = serialized[i].contents + leafs[i].length;
+    prevContentsEnd += leafs[i].length;
+
+#ifdef DEBUG
+    std::cout << "Source: " << leafs[i] << std::endl << "Serial: " << serialized[i] << std::endl << std::endl;
+#endif
   }
 
   return serialized;

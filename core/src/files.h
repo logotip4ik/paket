@@ -13,6 +13,7 @@ bool validateHeader(std::ifstream &os);
 lluint padFileSize(lluint size);
 lluint getFileSize(fs::path path);
 char getFileAttrs(fs::path path);
+bool isPathBlacklisted(fs::path path);
 
 // it filters out files inside
 void rebuildFolderTree(std::vector<Leaf> &leafs);

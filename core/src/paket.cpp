@@ -19,21 +19,36 @@ PaketRes encrypt(std::string rootPath, std::string outputPath, std::string _key)
   Buf iv(16);
   makeIvKeyFromKey(std::string(_key), &iv);
 
-  Leaf root = traverse_path(rootPath);
-
   fs::path output(outputPath);
+  if (output.is_relative()) {
+    output = fs::current_path() / output;
+  }
+
+  outputPath = output.string();
+
+  Leaf root = traverse_path(rootPath, outputPath);
   std::ofstream file = preparePktFile(output);
 
   std::vector<Leaf> leafs = unwind(root);
+
+  if (leafs.size() > MAX_LEAFS_COUNT) {
+#ifdef DEBUG
+    std::cout << "max leafs count reached: " << leafs.size()
+              << " please increase this value in `constants.h`" << std::endl;
+#endif
+
+    return PaketRes::MaxLeafsCountReached;
+  }
 
   const int baseOffset = PKT_HEADER_SIZE + PKT_VERSION_SIZE +
                          sizeof(int) // number of leafs
                          + SERIALIZED_LEAF_SIZE * leafs.size(); // table itself
 
-  std::vector<SerializedLeaf> serialized = serializeLeafs(leafs, baseOffset);
 #ifdef DEBUG
   std::cout << "base offset: " << baseOffset << std::endl;
 #endif
+
+  std::vector<SerializedLeaf> serialized = serializeLeafs(leafs, baseOffset);
 
   Buf table(SERIALIZED_LEAF_SIZE * leafs.size());
   Buf encryptedTable(SERIALIZED_LEAF_SIZE * leafs.size());
@@ -107,7 +122,10 @@ PaketRes decrypt(std::string paket, std::string outputPath, std::string _key) {
   decryptBuf(&key, &iv, &encrypedLeafsCountBuf, &leafsCountBuf);
   memcpy(&leafsCount, leafsCountBuf.value, leafsCountBuf.size);
 
-  if (leafsCount > MAX_LEAFS_COUNT) {
+  if (leafsCount > MAX_LEAFS_COUNT || leafsCount < 1) {
+#ifdef DEBUG
+    std::cout << "Received not valid leafs count number: " << leafsCount << std::endl;
+#endif
     return PaketRes::WrongKey;
   }
 
@@ -127,9 +145,9 @@ PaketRes decrypt(std::string paket, std::string outputPath, std::string _key) {
     std::cout << leaf << std::endl;
 #endif
 
-    if (leaf.contents > 99999) {
+    if (leaf.length > MAX_FILE_SIZE) {
 #ifdef DEBUG
-      std::cerr << "i mean, just for your computer safety..." << std::endl;
+      std::cerr << "probably received to big file MAX: " << MAX_FILE_SIZE << " received: " << leaf.length << std::endl;
 #endif
       return PaketRes::WrongKey;
     }

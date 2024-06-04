@@ -78,8 +78,10 @@ void process_cb(Fl_Widget* widget, void* userdata) {
         }
         case PaketRes::WrongKey: {
           fl_alert("Try other key, this seems to be wrong.");
+          return;
         }
         default:
+          fl_alert("Something when wrong...");
           return;
       };
 
@@ -89,7 +91,7 @@ void process_cb(Fl_Widget* widget, void* userdata) {
       std::string encrypted_filename = ctx->path.stem().string() + ".pkt";
       fs::path output_file;
 
-      chooser.title("Enter ecnrypted file");
+      chooser.title("Enter encrypted file");
       chooser.type(Fl_Native_File_Chooser::BROWSE_SAVE_FILE);
       chooser.options(Fl_Native_File_Chooser::NEW_FOLDER | Fl_Native_File_Chooser::SAVEAS_CONFIRM);
       chooser.filter("Paket file\t*.pkt\n");
