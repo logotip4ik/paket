@@ -5,7 +5,9 @@
 #define lluint long long unsigned int
 #define MAX_PATH_LENGTH 62
 #define MAX_LEAFS_COUNT 100
-#define MAX_FILE_SIZE 64000000 // in bytes (64mb)
+
+// in bytes
+#define MAX_FILE_SIZE 64000000 // 64mb
 
 #define CHUNK_SIZE 4096
 

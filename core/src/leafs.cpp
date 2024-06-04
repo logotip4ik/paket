@@ -20,12 +20,12 @@ Leaf traverse_path(std::string &_path, std::string &output) {
 
   if (isPathBlacklisted(_path)) {
     std::cout << "ERROR: the root file or folder is blacklisted -> " << _path << std::endl;
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 
   if (_path == output) {
     std::cout << "ERROR: the root file must not be the target -> " << _path << " -> " << output << std::endl;
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 
   leaf.path = fs::path(_path);

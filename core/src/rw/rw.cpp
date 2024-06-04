@@ -48,6 +48,8 @@ PktRW::~PktRW() {
 }
 
 void PktRW::process(PktMiddleware &middleware) {
+  lluint totalBytesWrote = 0;
+
   Buf inBuffer = Buf(CHUNK_SIZE);
   Buf outBuffer = Buf(CHUNK_SIZE);
 
@@ -64,6 +66,12 @@ void PktRW::process(PktMiddleware &middleware) {
 #endif
 
     this->target.write((char *)outBuffer.value, outBuffer.wrote);
+    totalBytesWrote += outBuffer.wrote;
+
+    if (totalBytesWrote > MAX_FILE_SIZE) {
+      std::cerr << "Probably writing and reading from the same file" << std::endl;
+      exit(EXIT_FAILURE);
+    }
 
     this->source.read((char *)inBuffer.value, inBuffer.size);
   }
