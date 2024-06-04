@@ -7,7 +7,7 @@
 #define MAX_LEAFS_COUNT 100
 
 // in bytes
-#define MAX_FILE_SIZE 64000000 // 64mb
+#define MAX_FILE_SIZE 128000000 // 128mb
 
 #define CHUNK_SIZE 4096
 
