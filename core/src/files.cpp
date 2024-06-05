@@ -41,11 +41,6 @@ lluint getFileSize(fs::path path) {
   return pos;
 }
 
-lluint padFileSize(lluint size) {
-  int divisibleBy = 16;
-  return size + (divisibleBy - (size % divisibleBy));
-}
-
 void rebuildFolderTree(std::vector<Leaf> &leafs) {
   for (const Leaf &leaf : leafs) {
     if (!leaf.isFolder) {
