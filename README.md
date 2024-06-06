@@ -29,7 +29,7 @@ It should be a monorepo, currently only wip core is present.
     make lib
     ```
 
-    <sub>you can only build core in `release` mode by prefixing the `make lib` with `make release-lib`</sub>
+    <sub>you can also build core in release mode by prefixing the `make lib` with `release` (`make release-lib`)</sub>
 
 2. Then, you need to build the frontend part with:
 
@@ -38,7 +38,7 @@ It should be a monorepo, currently only wip core is present.
     make
     ```
 
-    <sub>This command also has `release` mode (`make release`), which will use `release` lib output of core</sub>
+    <sub>This command also has `release` mode `make release`, which will use `release` lib output of core</sub>
 
 3. Now you can launch the gui with `./debug/paket` or `./release/paket`. (i haven't yet checked out
    how to compile the frontend so that you can just click on it and open the app...)
