@@ -1,6 +1,6 @@
 sourceFiles := $(wildcard src/*) $(wildcard src/*/*.cpp)
 buildFiles := $(wildcard src/*.cpp) $(wildcard src/*/*.cpp)
-customFlags := -std=c++20 -pedantic -Wall
+customFlags := -std=c++20 -pedantic -Wall -pthread
 
 packet: $(sourceFiles)
 	$(CXX) $(buildFiles) $(customFlags) -D DEBUG -L/opt/homebrew/Cellar/openssl@3/3.3.0/lib/ -lcrypto -lssl -o debug/paket
