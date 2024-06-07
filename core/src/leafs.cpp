@@ -51,12 +51,16 @@ std::vector<Leaf> traverse_leaf(Leaf &leaf, std::string &output) {
     child.path = entry.path();
 
     if (isPathBlacklisted(child.path)) {
+#ifdef DEBUG
       std::cout << "WARNING: this file or folder is blacklisted, ignoring -> " << child.path << std::endl;
+#endif
       continue;
     }
 
     if (child.path == output) {
+#ifdef DEBUG
       std::cout << "WARNING: ignoring the output file -> " << output << std::endl;
+#endif
       continue;
     }
 
