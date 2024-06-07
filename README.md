@@ -45,5 +45,5 @@ and even you...
 ## Todo:
 
 - [ ] app icon
-- [ ] multithreading
+- [x] multithreading
 - [ ] put `isFolder` flag into `attrs`
