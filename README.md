@@ -5,8 +5,6 @@ and even you...
 
 ## Repo
 
-It should be a monorepo, currently only wip core is present.
-
 - [`core`](./core) (wip) C++ library to encrypt and decrypt, serialize and deserialize files and
     folders. This should be used by future frontend (native app) build with nim ?
 
