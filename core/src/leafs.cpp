@@ -57,9 +57,14 @@ std::vector<Leaf> traverse_leaf(Leaf &leaf, std::string &output) {
       continue;
     }
 
-    if (child.path == output) {
+    if (
+      (child.path.is_relative()
+        ? fs::absolute(child.path).lexically_normal()
+        : child.path) == output
+    ) {
 #ifdef DEBUG
-      std::cout << "WARNING: ignoring the output file -> " << output << std::endl;
+      std::cout << "WARNING: ignoring the output file -> " << output
+                << std::endl;
 #endif
       continue;
     }

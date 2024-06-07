@@ -1,4 +1,5 @@
 #include <iostream>
+#include <thread>
 
 #include "paket.h"
 
@@ -67,8 +68,7 @@ PaketRes encrypt(std::string rootPath, std::string outputPath, std::string _key)
   file.write((char *)(encrypedLeafsCountBuf.value), encrypedLeafsCountBuf.size);
   file.write((char *)(encryptedTable.value), table.size);
 
-  // todo: add multithreading
-  /* std::vector<std::thread> threads(serialized.size()); */
+  std::vector<std::thread> threads;
 
   for (size_t i = 0; i < serialized.size(); i++) {
     const SerializedLeaf &sleaf = serialized[i];
@@ -81,21 +81,27 @@ PaketRes encrypt(std::string rootPath, std::string outputPath, std::string _key)
     std::cout << sleaf.path << " start: " << sleaf.contents << std::endl;
 #endif
 
-    PktRWOptions options;
+    threads.push_back(std::thread([&, i] {
+      PktRWOptions options;
 
-    options.mode = PktMode::Dest;
-    options.pkt = output;
-    options.offset = sleaf.contents;
-    // Because path in serialized leaf is chopped down to the lowest folder, we need to read file
-    // contents from true file. Thus we take absolute (correct) path to file;
-    options.target = leafs[i].path;
+      options.mode = PktMode::Dest;
+      options.pkt = output;
+      options.offset = serialized[i].contents;
+      // Because path in serialized leaf is chopped down to the lowest folder, we need to read file
+      // contents from true file. Thus we take absolute (correct) path to file;
+      options.target = leafs[i].path;
 
-    PktRW rw(options);
+      PktRW rw(options);
 
-    /* PktDummyMiddleware middleware = PktDummyMiddleware(); */
-    PktAesMiddleware middleware = PktAesMiddleware(AesMode::Encrypt, key.value, iv.value);
+      /* PktDummyMiddleware middleware = PktDummyMiddleware(); */
+      PktAesMiddleware middleware = PktAesMiddleware(AesMode::Encrypt, key.value, iv.value);
 
-    rw.process(middleware);
+      rw.process(middleware);
+    }));
+  }
+
+  for (std::thread &thread : threads) {
+    thread.join();
   }
 
   return PaketRes::Ok;
@@ -155,8 +161,8 @@ PaketRes decrypt(std::string paket, std::string outputPath, std::string _key) {
 
   rebuildFolderTree(leafs);
 
-  // todo: add multithreading
-  /* std::vector<std::thread> threads(serialized.size()); */
+  std::vector<std::thread> threads;
+
   for (const Leaf &leaf : leafs) {
     if (leaf.isFolder) {
       continue;
@@ -166,19 +172,25 @@ PaketRes decrypt(std::string paket, std::string outputPath, std::string _key) {
     std::cout << leaf.path << std::endl;
 #endif
 
-    PktRWOptions options;
+    threads.push_back(std::thread([&, leaf] {
+      PktRWOptions options;
 
-    options.mode = PktMode::Source;
-    options.pkt = paket;
-    options.offset = leaf.contents;
-    options.target = leaf.path;
+      options.mode = PktMode::Source;
+      options.pkt = paket;
+      options.offset = leaf.contents;
+      options.target = leaf.path;
 
-    PktRW rw(options);
+      PktRW rw(options);
 
-    /* PktDummyMiddleware middleware = PktDummyMiddleware(); */
-    PktAesMiddleware middleware = PktAesMiddleware(AesMode::Encrypt, key.value, iv.value);
+      /* PktDummyMiddleware middleware = PktDummyMiddleware(); */
+      PktAesMiddleware middleware = PktAesMiddleware(AesMode::Encrypt, key.value, iv.value);
 
-    rw.process(middleware, leaf.length);
+      rw.process(middleware, leaf.length);
+    }));
+  }
+
+  for (std::thread &thread : threads) {
+    thread.join();
   }
 
   rebuildAttrsTree(leafs);

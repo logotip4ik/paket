@@ -32,7 +32,7 @@ std::vector<SerializedLeaf> serializeLeafs(std::vector<Leaf> &leafs, int baseOff
     if (pathLen > MAX_PATH_LENGTH) {
       std::cout << std::string("path length must be less then ") +
                        std::to_string(MAX_PATH_LENGTH) +
-                       std::string(" but encourted: ") + path
+                       std::string(" but encourted: ") + (path + absolutePathOffset)
                 << std::endl;
 
       exit(EXIT_FAILURE);
@@ -47,7 +47,7 @@ std::vector<SerializedLeaf> serializeLeafs(std::vector<Leaf> &leafs, int baseOff
     prevContentsEnd += leafs[i].length;
 
 #ifdef DEBUG
-    std::cout << "Source: " << leafs[i] << std::endl << "Serial: " << serialized[i] << std::endl << std::endl;
+    std::cout << leafs[i] << " -> " << serialized[i] << std::endl;
 #endif
   }
 
@@ -83,7 +83,7 @@ std::vector<Leaf> deserializeLeafs(std::vector<SerializedLeaf> &serialized, llui
   std::vector<Leaf> leafs(leafsCount);
 
   for (size_t i = 0; i < leafsCount; i++) {
-    leafs[i].path = fs::path(serialized[i].path);
+    leafs[i].path = fs::path(serialized[i].path).lexically_normal();
     leafs[i].isFolder = serialized[i].isFolder;
 
     leafs[i].attrs = serialized[i].attrs;
