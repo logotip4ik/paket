@@ -4,9 +4,16 @@
 #include "files.h"
 #include "leafs.h"
 
+void markLeaf(Leaf &leaf, LeafAttrs attr) {
+  leaf.attrs |= (unsigned char)attr;
+}
+
+bool isLeafMarked(const Leaf &leaf, LeafAttrs attr) {
+  return leaf.attrs & (unsigned char)attr;
+}
+
 std::ostream &operator<<(std::ostream &stream, const Leaf leaf) {
   stream << "[ path: " << leaf.path.c_str()
-         << ", isFolder: " << leaf.isFolder
          << ", attrs: " << (short)leaf.attrs
          << ", contents: " << leaf.contents
          << ", length: " << leaf.length
@@ -29,13 +36,12 @@ Leaf traverse_path(std::string &_path, std::string &output) {
   }
 
   leaf.path = fs::path(_path);
-  leaf.isFolder = fs::is_directory(_path);
+  leaf.attrs = getPathAttrs(leaf.path);
 
-  if (leaf.isFolder) {
+  if (isLeafMarked(leaf, LeafAttrs::Folder)) {
     leaf.children = traverse_leaf(leaf, output);
   } else {
     leaf.length = getFileSize(leaf.path);
-    leaf.attrs = getFileAttrs(leaf.path);
   }
 
   return leaf;
@@ -69,13 +75,12 @@ std::vector<Leaf> traverse_leaf(Leaf &leaf, std::string &output) {
       continue;
     }
 
-    child.isFolder = entry.is_directory();
+    child.attrs = getPathAttrs(child.path);
 
-    if (child.isFolder) {
+    if (isLeafMarked(child, LeafAttrs::Folder)) {
       child.children = traverse_leaf(child, output);
     } else {
       child.length = getFileSize(child.path);
-      child.attrs = getFileAttrs(child.path);
     }
 
     children.push_back(child);
@@ -89,7 +94,7 @@ std::vector<Leaf> unwind(Leaf &leaf) {
 
   items.push_back(leaf);
 
-  if (leaf.isFolder) {
+  if (isLeafMarked(leaf, LeafAttrs::Folder)) {
     for (Leaf &child : leaf.children) {
       std::vector<Leaf> childrenItems = unwind(child);
 

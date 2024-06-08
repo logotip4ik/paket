@@ -18,7 +18,7 @@ PaketRes encrypt(std::string rootPath, std::string outputPath, std::string _key)
   Buf key(32);
   memcpy(key.value, _key.c_str(), _key.size());
   Buf iv(16);
-  makeIvKeyFromKey(std::string(_key), &iv);
+  makeIvKeyFromKey(_key, &iv);
 
   fs::path output(outputPath);
   if (output.is_relative()) {
@@ -73,7 +73,7 @@ PaketRes encrypt(std::string rootPath, std::string outputPath, std::string _key)
   for (size_t i = 0; i < serialized.size(); i++) {
     const SerializedLeaf &sleaf = serialized[i];
 
-    if (sleaf.isFolder) {
+    if (isLeafMarked(sleaf, LeafAttrs::Folder)) {
       continue;
     }
 
@@ -117,7 +117,7 @@ PaketRes decrypt(std::string paket, std::string outputPath, std::string _key) {
   Buf key(32);
   memcpy(key.value, _key.c_str(), _key.size());
   Buf iv(16);
-  makeIvKeyFromKey(std::string(_key), &iv);
+  makeIvKeyFromKey(_key, &iv);
 
   int leafsCount;
   Buf encrypedLeafsCountBuf = Buf(sizeof(leafsCount));
@@ -163,29 +163,29 @@ PaketRes decrypt(std::string paket, std::string outputPath, std::string _key) {
 
   std::vector<std::thread> threads;
 
-  for (const Leaf &leaf : leafs) {
-    if (leaf.isFolder) {
+  for (size_t i = 0; i < leafs.size(); i++) {
+    if (isLeafMarked(leafs[i], LeafAttrs::Folder)) {
       continue;
     }
 
 #ifdef DEBUG
-    std::cout << leaf.path << std::endl;
+    std::cout << leafs[i].path << std::endl;
 #endif
 
-    threads.push_back(std::thread([&, leaf] {
+    threads.push_back(std::thread([&, i] {
       PktRWOptions options;
 
       options.mode = PktMode::Source;
       options.pkt = paket;
-      options.offset = leaf.contents;
-      options.target = leaf.path;
+      options.offset = leafs[i].contents;
+      options.target = leafs[i].path;
 
       PktRW rw(options);
 
       /* PktDummyMiddleware middleware = PktDummyMiddleware(); */
       PktAesMiddleware middleware = PktAesMiddleware(AesMode::Encrypt, key.value, iv.value);
 
-      rw.process(middleware, leaf.length);
+      rw.process(middleware, leafs[i].length);
     }));
   }
 

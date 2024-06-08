@@ -46,4 +46,4 @@ and even you...
 
 - [ ] app icon
 - [x] multithreading
-- [ ] put `isFolder` flag into `attrs`
+- [x] put `isFolder` flag into `attrs`

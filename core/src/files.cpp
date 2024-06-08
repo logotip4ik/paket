@@ -43,7 +43,7 @@ lluint getFileSize(fs::path path) {
 
 void rebuildFolderTree(std::vector<Leaf> &leafs) {
   for (const Leaf &leaf : leafs) {
-    if (!leaf.isFolder) {
+    if (!isLeafMarked(leaf, LeafAttrs::Folder)) {
       continue;
     }
 
@@ -53,13 +53,13 @@ void rebuildFolderTree(std::vector<Leaf> &leafs) {
 
 void rebuildAttrsTree(std::vector<Leaf> &leafs) {
   for (const Leaf &leaf : leafs) {
-    if (leaf.isFolder || leaf.attrs == 0) {
+    if (isLeafMarked(leaf, LeafAttrs::Folder) || leaf.attrs == 0) {
       continue;
     }
 
     fs::perms p;
 
-    if (leaf.attrs & (char)FileAttrs::Execution) {
+    if (isLeafMarked(leaf, LeafAttrs::Execution)) {
       p |= fs::perms::owner_exec;
     }
 
@@ -67,19 +67,21 @@ void rebuildAttrsTree(std::vector<Leaf> &leafs) {
   }
 }
 
-char getFileAttrs(fs::path path) {
-  char attrs = 0;
+unsigned char getPathAttrs(fs::path path) {
+  unsigned char attrs = 0;
 
   fs::file_status s = fs::status(path);
 
   if (s.type() == fs::file_type::directory) {
+    attrs |= (unsigned char)LeafAttrs::Folder;
+
     return attrs;
   }
 
   fs::perms p = s.permissions();
 
   if (fs::perms::none != (fs::perms::owner_exec & p)) {
-    attrs |= (char)FileAttrs::Execution;
+    attrs |= (unsigned char)LeafAttrs::Execution;
   }
 
   return attrs;

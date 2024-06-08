@@ -3,7 +3,7 @@
 #include <filesystem>
 
 #define lluint long long unsigned int
-#define MAX_PATH_LENGTH 62
+#define MAX_PATH_LENGTH 63
 #define MAX_LEAFS_COUNT 100
 
 // in bytes
@@ -21,14 +21,15 @@ enum struct AesMode {
   Decrypt,
 };
 
-enum struct FileAttrs {
+enum struct LeafAttrs : unsigned char {
   Execution = 1,
+  Folder = 1 << 7
 };
 
 const static char *PKT_HEADER = "PKT";
 const static int PKT_HEADER_SIZE = sizeof(char) * 3;
 
-const static short PKT_VERSION = 5;
+const static short PKT_VERSION = 6;
 const static short PKT_VERSION_SIZE = sizeof(PKT_VERSION);
 
 const static char *BlacklistedPaths[] = {

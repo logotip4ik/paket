@@ -7,9 +7,18 @@
 
 #include "table.h"
 
+bool isLeafMarked(const SerializedLeaf &leaf, LeafAttrs attr) {
+  return leaf.attrs & (unsigned char)attr;
+}
+
+void markLeaf(SerializedLeaf &leaf, LeafAttrs attr) {
+  leaf.attrs |= (unsigned char)attr;
+}
+
 std::ostream &operator<<(std::ostream &stream, const SerializedLeaf leaf) {
-  stream << "[ path: " << leaf.path << ", isFolder: " << leaf.isFolder
-         << ", contents: " << leaf.contents << ", attrs: " << short(leaf.attrs)
+  stream << "[ path: " << leaf.path
+         << ", contents: " << leaf.contents
+         << ", attrs: " << short(leaf.attrs)
          << " ]";
 
   return stream;
@@ -41,7 +50,6 @@ std::vector<SerializedLeaf> serializeLeafs(std::vector<Leaf> &leafs, int baseOff
     memcpy(&serialized[i].path, path + absolutePathOffset, pathLen);
 
     serialized[i].attrs = leafs[i].attrs;
-    serialized[i].isFolder = leafs[i].isFolder;
     serialized[i].contents = prevContentsEnd;
 
     prevContentsEnd += leafs[i].length;
@@ -84,7 +92,6 @@ std::vector<Leaf> deserializeLeafs(std::vector<SerializedLeaf> &serialized, llui
 
   for (size_t i = 0; i < leafsCount; i++) {
     leafs[i].path = fs::path(serialized[i].path).lexically_normal();
-    leafs[i].isFolder = serialized[i].isFolder;
 
     leafs[i].attrs = serialized[i].attrs;
     leafs[i].contents = serialized[i].contents;
